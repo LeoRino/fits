@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fits</title>
+  <style>
+    :root {
+      --bg: #F4F0EB;
+      --surface: #FFFFFF;
+      --border: #E3DCD3;
+      --text: #1A1612;
+      --muted: #8A7B6D;
+      --accent: #1A1612;
+      --green: #3A7050;
+      --teal: #2A6880;
+      --amber: #B07018;
+      --red: #A83028;
+      --wash-color: #2F6B9A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ───────────────────────────────────────── */
+    #header {
+      flex-shrink: 0;
+      padding: 18px 20px 10px;
+      padding-top: max(18px, env(safe-area-inset-top, 18px));
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    #header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    #header-date {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Scrollable Content ───────────────────────────── */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Views ────────────────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ─────────────────────────────────────────────────── */
+    /* OUTFIT VIEW                                         */
+    /* ─────────────────────────────────────────────────── */
+    #view-outfit {
+      padding: 8px 14px 24px;
+    }
+
+    /* Card pair */
+    #outfit-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .outfit-card {
+      background: var(--surface);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    .outfit-card img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      display: block;
+      background: var(--border);
+    }
+
+    .card-label {
+      padding: 10px 12px 12px;
+    }
+
+    .card-type {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .card-name {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    /* Match badge */
+    #match-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px 5px 9px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-bottom: 14px;
+    }
+
+    #match-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #match-badge.great  { background: #E6F2EC; color: #2A6040; }
+    #match-badge.great  .dot { background: #3A7050; }
+    #match-badge.good   { background: #E4EFF6; color: #1E5878; }
+    #match-badge.good   .dot { background: #2A6880; }
+    #match-badge.ok     { background: #FAF1E2; color: #906010; }
+    #match-badge.ok     .dot { background: #B07018; }
+    #match-badge.risky  { background: #FCECEA; color: #882020; }
+    #match-badge.risky  .dot { background: #A83028; }
+
+    /* Suggestion nav */
+    #suggestion-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    #suggestion-counter {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .nav-arrow {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      width: 38px;
+      height: 38px;
+      font-size: 17px;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-arrow:active { background: var(--border); }
+    .nav-arrow:disabled { opacity: 0.28; pointer-events: none; }
+
+    /* Primary CTA */
+    #btn-wear {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      margin-bottom: 9px;
+      transition: opacity 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #btn-wear:active { opacity: 0.82; }
+
+    /* Skip buttons */
+    #skip-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-skip {
+      padding: 12px 8px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.35;
+      transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-skip:active { background: var(--border); }
+
+    /* Empty state */
+    #empty-state {
+      display: none;
+      text-align: center;
+      padding: 56px 24px 32px;
+    }
+
+    #empty-state .es-icon { font-size: 52px; margin-bottom: 16px; }
+    #empty-state h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+    #empty-state p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    /* ─────────────────────────────────────────────────── */
+    /* HISTORY VIEW                                        */
+    /* ─────────────────────────────────────────────────── */
+    #view-history { padding: 14px 14px 24px; }
+
+    .section-heading {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 11px 12px;
+      margin-bottom: 8px;
+      gap: 12px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    }
+
+    .hist-thumbs {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .hist-thumb {
+      width: 42px;
+      height: 54px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--border);
+      display: block;
+    }
+
+    .hist-info { flex: 1; min-width: 0; }
+
+    .hist-date {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .hist-names {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .btn-hist-del {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0;
+      opacity: 0.55;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* CLOSET VIEW                                         */
+    /* ─────────────────────────────────────────────────── */
+    #view-closet { padding: 14px 14px 24px; }
+
+    .closet-section { margin-bottom: 24px; }
+
+    .closet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .closet-card {
+      background: var(--surface);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.06);
+      transition: opacity 0.2s;
+    }
+
+    .closet-card.in-wash { opacity: 0.45; }
+
+    .closet-card img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      display: block;
+      background: var(--border);
+    }
+
+    .closet-footer {
+      padding: 8px 10px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .closet-name {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-wash {
+      flex-shrink: 0;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: none;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.12s;
+    }
+
+    .btn-wash.active {
+      background: #E4EFF6;
+      border-color: #2F6B9A;
+      color: #1E5878;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* BOTTOM NAV                                          */
+    /* ─────────────────────────────────────────────────── */
+    #bottom-nav {
+      flex-shrink: 0;
+      display: flex;
+      background: rgba(255,255,255,0.95);
+      border-top: 1px solid var(--border);
+      padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0 9px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #B0A090;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      gap: 5px;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-btn.active { color: var(--accent); }
+    .tab-icon { font-size: 21px; line-height: 1; }
+
+    /* ── Password gate ────────────────────────────────── */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 0;
+    }
+
+    #lock-screen h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+
+    #lock-screen p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    #pw-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 15px 18px;
+      font-size: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      font-family: inherit;
+    }
+
+    #pw-input:focus { border-color: var(--accent); }
+    #pw-input.shake {
+      animation: shake 0.35s ease;
+      border-color: var(--red);
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-6px); }
+      80%      { transform: translateX(6px); }
+    }
+
+    #pw-error {
+      font-size: 13px;
+      color: var(--red);
+      height: 18px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    #btn-unlock {
+      width: 100%;
+      max-width: 320px;
+      padding: 15px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: -0.2px;
+    }
+
+    #btn-unlock:active { opacity: 0.82; }
+  </style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div id="lock-screen">
+  <h2>Fits</h2>
+  <p>Enter password to continue</p>
+  <input id="pw-input" type="password" placeholder="••••••••" autocomplete="off" autocorrect="off">
+  <div id="pw-error"></div>
+  <button id="btn-unlock">Unlock</button>
+</div>
+
+<!-- Header -->
+<div id="header">
+  <h1>Fits</h1>
+  <span id="header-date"></span>
+</div>
+
+<!-- Content -->
+<div id="content">
+
+  <!-- ── Outfit View ─────────────────────────── -->
+  <div id="view-outfit" class="view active">
+
+    <div id="outfit-pair">
+      <div class="outfit-card">
+        <img id="img-top" src="" alt="Top" onerror="this.style.background='#ddd';this.removeAttribute('onerror')">
+        <div class="card-label">
+          <div class="card-type">Top</div>
+          <div class="card-name" id="label-top">—</div>
+        </div>
+      </div>
+      <div class="outfit-card">
+        <img id="img-bottom" src="" alt="Bottom" onerror="this.style.background='#ddd';this.removeAttribute('onerror')">
+        <div class="card-label">
+          <div class="card-type">Bottom</div>
+          <div class="card-name" id="label-bottom">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="match-badge" class="great">
+      <div class="dot"></div>
+      <span id="match-label">Classic</span>
+    </div>
+
+    <div id="suggestion-nav">
+      <button class="nav-arrow" id="btn-prev">&#8592;</button>
+      <span id="suggestion-counter">1 of 1</span>
+      <button class="nav-arrow" id="btn-next">&#8594;</button>
+    </div>
+
+    <button id="btn-wear">Wear This Today ✓</button>
+
+    <div id="skip-row">
+      <button class="btn-skip" id="btn-skip-top">🧺 Top → Wash<br><span style="font-weight:500;font-size:10px;opacity:0.7">won't count as worn</span></button>
+      <button class="btn-skip" id="btn-skip-bottom">🧺 Bottom → Wash<br><span style="font-weight:500;font-size:10px;opacity:0.7">won't count as worn</span></button>
+    </div>
+
+    <div id="empty-state">
+      <div class="es-icon">🧺</div>
+      <h3>Wardrobe's empty!</h3>
+      <p>Too many items in the wash.<br>Go to Closet to bring them back.</p>
+    </div>
+
+  </div>
+
+  <!-- ── History View ────────────────────────── -->
+  <div id="view-history" class="view">
+    <div class="section-heading">Recently Worn</div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ── Closet View ─────────────────────────── -->
+  <div id="view-closet" class="view">
+    <div class="closet-section">
+      <div class="section-heading">Tops</div>
+      <div class="closet-grid" id="closet-tops"></div>
+    </div>
+    <div class="closet-section">
+      <div class="section-heading">Bottoms</div>
+      <div class="closet-grid" id="closet-bottoms"></div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- Bottom Nav -->
+<div id="bottom-nav">
+  <button class="tab-btn active" data-view="outfit">
+    <span class="tab-icon">👔</span>Outfit
+  </button>
+  <button class="tab-btn" data-view="history">
+    <span class="tab-icon">📅</span>History
+  </button>
+  <button class="tab-btn" data-view="closet">
+    <span class="tab-icon">🗄️</span>Closet
+  </button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PASSWORD GATE
+// SHA-256 of the password — never stored in plain text.
+// ═══════════════════════════════════════════════════════════
+const PW_HASH = '782062488e5b79d25a67d4461b390f4279bfb49cd102aff4897214bfee3b9cac';
+const SESSION_KEY = 'fits-unlocked';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryUnlock() {
+  const val = document.getElementById('pw-input').value;
+  const hash = await sha256(val);
+  if (hash === PW_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('lock-screen').style.display = 'none';
+  } else {
+    const input = document.getElementById('pw-input');
+    const err   = document.getElementById('pw-error');
+    err.textContent = 'Wrong password';
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(() => { input.classList.remove('shake'); err.textContent = ''; }, 1200);
+  }
+}
+
+document.getElementById('btn-unlock').addEventListener('click', tryUnlock);
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryUnlock();
+});
+
+// Already unlocked this session — skip the gate immediately
+if (sessionStorage.getItem(SESSION_KEY)) {
+  document.getElementById('lock-screen').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+// WARDROBE DATA
+// ═══════════════════════════════════════════════════════════
+const TOPS = [
+  { id: 'beige-polo',        name: 'Beige Polo',             path: 'Tops/Beige Polo.png',              color: 'beige' },
+  { id: 'beige-viscose',     name: 'Beige Viscose T-Shirt',  path: 'Tops/Beige Viscose Tshirt.png',    color: 'beige' },
+  { id: 'black-rough',       name: 'Black Rough T-Shirt',    path: 'Tops/Black Rough Tshirt.png',      color: 'black' },
+  { id: 'black-viscose',     name: 'Black Viscose T-Shirt',  path: 'Tops/Black Viscose Tshirt.png',    color: 'black' },
+  { id: 'brown-polo',        name: 'Brown Polo',             path: 'Tops/Brown Polo.png',              color: 'brown' },
+  { id: 'navy-quarter-zip',  name: 'Navy Quarter Zip',       path: 'Tops/Navy Quarter Zip Shirt.png',  color: 'navy'  },
+  { id: 'navy-viscose',      name: 'Navy Viscose T-Shirt',   path: 'Tops/Navy Viscose Tshirt.png',     color: 'navy'  },
+  { id: 'white-viscose',     name: 'White Viscose T-Shirt',  path: 'Tops/White Viscose Tshirt.png',    color: 'white' },
+];
+
+const BOTTOMS = [
+  { id: 'beige-suit',        name: 'Beige Suit Pants',          path: 'Bottoms/Beige Suit Pants Linen.png',        color: 'beige'       },
+  { id: 'black-chino',       name: 'Black Chino',               path: 'Bottoms/Black Chino.png',                   color: 'black'       },
+  { id: 'brown-linen',       name: 'Brown Linen Pants',         path: 'Bottoms/Brown Linen Pants.png',             color: 'brown'       },
+  { id: 'jeans',             name: 'Jeans',                     path: 'Bottoms/Jeans.png',                         color: 'denim'       },
+  { id: 'navy-linen',        name: 'Navy Linen Pants',          path: 'Bottoms/Navy Linen Pants Wide.png',         color: 'navy'        },
+  { id: 'striped-suit',      name: 'Striped Suit Pants',        path: 'Bottoms/Striped Suit Pants Navy.png',       color: 'navy-stripe' },
+  { id: 'white-linen',       name: 'White Linen Pants',         path: 'Bottoms/White Linen Pants Slim.png',        color: 'white'       },
+  { id: 'balloon-pants',     name: 'White/Beige Balloon Pants', path: 'Bottoms/White:Beige Hemp Baloon Pants.png', color: 'white-beige' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// FASHION SCORING
+// Key insight: black + navy = absolute no. Brown + black = avoid.
+// Same dark color top/bottom = too matchy. White/beige = always safe.
+// ═══════════════════════════════════════════════════════════
+function colorScore(tc, bc) {
+  const key = `${tc}|${bc}`;
+  const scores = {
+    // ── Perfect 10s (timeless classics) ───────────────────
+    'white|navy':        10,  'navy|white':        10,
+    'white|black':       10,  'black|white':       10,
+    'white|denim':       10,
+    'white|navy-stripe': 10,  'navy-stripe|white': 10,
+    'white|white-beige':  9,  'white-beige|white':  9,
+
+    // ── White top with everything ──────────────────────────
+    'white|brown':        9,  'brown|white':        9,
+    'white|beige':        9,  'beige|white':        9,
+    'white|white':        8,
+
+    // ── Beige (warm neutral) ───────────────────────────────
+    'beige|navy':         9,  'navy|beige':         9,
+    'beige|black':        9,  'black|beige':        9,
+    'beige|denim':        8,  'denim|beige':        8,
+    'beige|navy-stripe':  8,  'navy-stripe|beige':  8,
+    'beige|white-beige':  8,  'white-beige|beige':  8,
+    'beige|brown':        7,  'brown|beige':        7,
+    'beige|beige':        6,
+
+    // ── Navy ───────────────────────────────────────────────
+    'navy|denim':         8,  'denim|navy':         8,
+    'navy|brown':         8,  'brown|navy':         8,
+    'navy|white-beige':   9,  'white-beige|navy':   9,
+    'navy|navy':          1,                              // too matchy
+    'navy|navy-stripe':   2,  'navy-stripe|navy':   2,   // navy overload
+
+    // ── Black ──────────────────────────────────────────────
+    'black|denim':        8,  'denim|black':        8,
+    'black|white-beige':  9,  'white-beige|black':  9,
+    'black|navy':         0,  'navy|black':         0,   // ← THE classic no-no
+    'black|navy-stripe':  1,  'navy-stripe|black':  1,   // still no
+    'black|brown':        3,  'brown|black':        3,   // avoid
+    'black|black':        5,                             // all-black: intentional but flat
+
+    // ── Brown (earthy) ─────────────────────────────────────
+    'brown|denim':        9,  'denim|brown':        9,
+    'brown|white-beige':  8,  'white-beige|brown':  8,
+    'brown|navy-stripe':  6,  'navy-stripe|brown':  6,
+    'brown|brown':        2,
+
+    // ── Denim (casual) ─────────────────────────────────────
+    'denim|navy-stripe':  5,  'navy-stripe|denim':  5,   // casual meets formal — awkward
+    'denim|white-beige':  8,  'white-beige|denim':  8,
+  };
+
+  return scores[key] ?? 6; // default: probably works
+}
+
+function matchInfo(fashionScore) {
+  if (fashionScore >= 9) return { label: 'Classic',    cls: 'great' };
+  if (fashionScore >= 7) return { label: 'Good Match', cls: 'good'  };
+  if (fashionScore >= 5) return { label: 'Works',      cls: 'ok'    };
+  return                        { label: 'Risky',      cls: 'risky' };
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE  (persisted to localStorage)
+// ═══════════════════════════════════════════════════════════
+const STORAGE_KEY = 'fits-v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return { inWash: { tops: [], bottoms: [] }, history: [] };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// ═══════════════════════════════════════════════════════════
+// SUGGESTION ENGINE
+// ═══════════════════════════════════════════════════════════
+let suggestions = [];
+let currentIdx  = 0;
+
+function recentPenalty(topId, botId) {
+  const now = Date.now();
+  const DAY = 86_400_000;
+  let pen = 0;
+
+  for (const e of state.history) {
+    const daysAgo = (now - e.ts) / DAY;
+    if (daysAgo > 14) continue;
+
+    if (e.topId === topId && e.botId === botId) {
+      // Exact combo worn recently: heavy decay penalty
+      pen += Math.max(0, 10 - daysAgo * 1.2);
+    } else {
+      // Individual item worn recently: strong 2-day window.
+      // pen=8 at daysAgo=0, pen=4 at daysAgo=1, pen=0 at daysAgo=2.
+      // Even a score-10 outfit drops to 2 after 1 day → always below fresh alternatives.
+      if (e.topId === topId) pen += Math.max(0, 8 - daysAgo * 4);
+      if (e.botId  === botId) pen += Math.max(0, 8 - daysAgo * 4);
+    }
+  }
+
+  return pen;
+}
+
+function buildSuggestions() {
+  const washTops    = new Set(state.inWash.tops);
+  const washBottoms = new Set(state.inWash.bottoms);
+
+  const availTops    = TOPS.filter(t => !washTops.has(t.id));
+  const availBottoms = BOTTOMS.filter(b => !washBottoms.has(b.id));
+
+  if (!availTops.length || !availBottoms.length) {
+    suggestions = [];
+    return;
+  }
+
+  const pairs = [];
+  for (const top of availTops) {
+    for (const bot of availBottoms) {
+      const fScore = colorScore(top.color, bot.color);
+      if (fScore < 1) continue; // absolute no-nos are never shown
+      const penalty     = recentPenalty(top.id, bot.id);
+      const finalScore  = fScore - penalty;
+      pairs.push({ top, bot, fScore, finalScore });
+    }
+  }
+
+  // Sort: meaningful score differences win; ties get a random shuffle for daily variety
+  pairs.sort((a, b) => {
+    const diff = b.finalScore - a.finalScore;
+    return Math.abs(diff) > 0.6 ? diff : Math.random() - 0.5;
+  });
+
+  suggestions = pairs;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function encodePath(p) {
+  return p.split('/').map(seg => encodeURIComponent(seg)).join('/');
+}
+
+function formatDate(ts) {
+  return new Date(ts).toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric'
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderOutfit() {
+  const outfitEls = ['outfit-pair', 'match-badge', 'suggestion-nav', 'btn-wear', 'skip-row'];
+  const hasOutfit = suggestions.length > 0;
+
+  outfitEls.forEach(id => {
+    document.getElementById(id).style.display = hasOutfit ? '' : 'none';
+  });
+  document.getElementById('empty-state').style.display = hasOutfit ? 'none' : 'block';
+
+  if (!hasOutfit) return;
+
+  const s = suggestions[currentIdx];
+
+  document.getElementById('img-top').src     = encodePath(s.top.path);
+  document.getElementById('label-top').textContent   = s.top.name;
+  document.getElementById('img-bottom').src  = encodePath(s.bot.path);
+  document.getElementById('label-bottom').textContent = s.bot.name;
+
+  const { label, cls } = matchInfo(s.fScore);
+  const badge = document.getElementById('match-badge');
+  badge.className = cls;
+  document.getElementById('match-label').textContent = label;
+
+  document.getElementById('suggestion-counter').textContent =
+    `${currentIdx + 1} of ${suggestions.length}`;
+
+  document.getElementById('btn-prev').disabled = currentIdx === 0;
+  document.getElementById('btn-next').disabled = currentIdx === suggestions.length - 1;
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+
+  if (!state.history.length) {
+    list.innerHTML = '<div class="history-empty">No outfits worn yet.<br>Tap "Wear This Today" to start your log.</div>';
+    return;
+  }
+
+  const entries = [...state.history]
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 40);
+
+  list.innerHTML = entries.map(entry => {
+    const top = TOPS.find(t => t.id === entry.topId);
+    const bot = BOTTOMS.find(b => b.id === entry.botId);
+    if (!top || !bot) return '';
+
+    return `
+      <div class="history-item">
+        <div class="hist-thumbs">
+          <img class="hist-thumb" src="${encodePath(top.path)}" alt="">
+          <img class="hist-thumb" src="${encodePath(bot.path)}" alt="">
+        </div>
+        <div class="hist-info">
+          <div class="hist-date">${formatDate(entry.ts)}</div>
+          <div class="hist-names">${top.name}<br>${bot.name}</div>
+        </div>
+        <button class="btn-hist-del" data-ts="${entry.ts}">×</button>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('.btn-hist-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ts = parseInt(btn.dataset.ts);
+      state.history = state.history.filter(e => e.ts !== ts);
+      saveState();
+      buildSuggestions();
+      renderHistory();
+    });
+  });
+}
+
+function renderCloset() {
+  function renderSection(items, gridId, type) {
+    const grid    = document.getElementById(gridId);
+    const washSet = new Set(state.inWash[type]);
+
+    grid.innerHTML = items.map(item => {
+      const inWash = washSet.has(item.id);
+      return `
+        <div class="closet-card ${inWash ? 'in-wash' : ''}">
+          <img src="${encodePath(item.path)}" alt="${item.name}"
+               onerror="this.style.background='#ddd';this.removeAttribute('onerror')">
+          <div class="closet-footer">
+            <span class="closet-name">${item.name}</span>
+            <button class="btn-wash ${inWash ? 'active' : ''}"
+                    data-id="${item.id}" data-type="${type}">
+              ${inWash ? 'Washing' : 'Wash'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.btn-wash').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const { id, type: t } = btn.dataset;
+        const arr = state.inWash[t];
+        const idx = arr.indexOf(id);
+        if (idx === -1) arr.push(id);
+        else arr.splice(idx, 1);
+        saveState();
+        buildSuggestions();
+        currentIdx = 0;
+        renderCloset();
+        renderOutfit();
+      });
+    });
+  }
+
+  renderSection(TOPS,    'closet-tops',    'tops');
+  renderSection(BOTTOMS, 'closet-bottoms', 'bottoms');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════════════════════════
+
+// Tab navigation
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    const viewId = `view-${btn.dataset.view}`;
+    document.getElementById(viewId).classList.add('active');
+    if (btn.dataset.view === 'history') renderHistory();
+    if (btn.dataset.view === 'closet')  renderCloset();
+  });
+});
+
+// Prev / Next
+document.getElementById('btn-prev').addEventListener('click', () => {
+  if (currentIdx > 0) { currentIdx--; renderOutfit(); }
+});
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (currentIdx < suggestions.length - 1) { currentIdx++; renderOutfit(); }
+});
+
+// Wear This
+document.getElementById('btn-wear').addEventListener('click', () => {
+  if (!suggestions.length) return;
+  const s = suggestions[currentIdx];
+  state.history.push({ topId: s.top.id, botId: s.bot.id, ts: Date.now() });
+  if (state.history.length > 60) state.history = state.history.slice(-60);
+  saveState();
+  buildSuggestions();
+  currentIdx = 0;
+  renderOutfit();
+});
+
+// Skip to wash (doesn't count as worn)
+document.getElementById('btn-skip-top').addEventListener('click', () => {
+  if (!suggestions.length) return;
+  const id = suggestions[currentIdx].top.id;
+  if (!state.inWash.tops.includes(id)) state.inWash.tops.push(id);
+  saveState();
+  buildSuggestions();
+  currentIdx = 0;
+  renderOutfit();
+});
+
+document.getElementById('btn-skip-bottom').addEventListener('click', () => {
+  if (!suggestions.length) return;
+  const id = suggestions[currentIdx].bot.id;
+  if (!state.inWash.bottoms.includes(id)) state.inWash.bottoms.push(id);
+  saveState();
+  buildSuggestions();
+  currentIdx = 0;
+  renderOutfit();
+});
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'long', month: 'short', day: 'numeric'
+});
+
+buildSuggestions();
+renderOutfit();
+</script>
+</body>
+</html>
