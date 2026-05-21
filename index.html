@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Fits</title>
+  <link rel="apple-touch-icon" href="laundry.icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Fits">
   <style>
     :root {
       --bg: #F4F0EB;
@@ -415,98 +419,9 @@
     .tab-btn.active { color: var(--accent); }
     .tab-icon { font-size: 21px; line-height: 1; }
 
-    /* ── Password gate ────────────────────────────────── */
-    #lock-screen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 32px;
-      gap: 0;
-    }
-
-    #lock-screen h2 {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 6px;
-    }
-
-    #lock-screen p {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 36px;
-    }
-
-    #pw-input {
-      width: 100%;
-      max-width: 320px;
-      padding: 15px 18px;
-      font-size: 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      background: var(--surface);
-      color: var(--text);
-      outline: none;
-      text-align: center;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-      font-family: inherit;
-    }
-
-    #pw-input:focus { border-color: var(--accent); }
-    #pw-input.shake {
-      animation: shake 0.35s ease;
-      border-color: var(--red);
-    }
-
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      20%      { transform: translateX(-8px); }
-      40%      { transform: translateX(8px); }
-      60%      { transform: translateX(-6px); }
-      80%      { transform: translateX(6px); }
-    }
-
-    #pw-error {
-      font-size: 13px;
-      color: var(--red);
-      height: 18px;
-      margin-bottom: 16px;
-      font-weight: 600;
-    }
-
-    #btn-unlock {
-      width: 100%;
-      max-width: 320px;
-      padding: 15px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: -0.2px;
-    }
-
-    #btn-unlock:active { opacity: 0.82; }
   </style>
 </head>
 <body>
-
-<!-- Password gate -->
-<div id="lock-screen">
-  <h2>Fits</h2>
-  <p>Enter password to continue</p>
-  <input id="pw-input" type="password" placeholder="••••••••" autocomplete="off" autocorrect="off">
-  <div id="pw-error"></div>
-  <button id="btn-unlock">Unlock</button>
-</div>
 
 <!-- Header -->
 <div id="header">
@@ -551,8 +466,8 @@
     <button id="btn-wear">Wear This Today ✓</button>
 
     <div id="skip-row">
-      <button class="btn-skip" id="btn-skip-top">🧺 Top → Wash<br><span style="font-weight:500;font-size:10px;opacity:0.7">won't count as worn</span></button>
-      <button class="btn-skip" id="btn-skip-bottom">🧺 Bottom → Wash<br><span style="font-weight:500;font-size:10px;opacity:0.7">won't count as worn</span></button>
+      <button class="btn-skip" id="btn-skip-top">🧺 Top → Wash</button>
+      <button class="btn-skip" id="btn-skip-bottom">🧺 Bottom → Wash</button>
     </div>
 
     <div id="empty-state">
@@ -597,46 +512,6 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// PASSWORD GATE
-// SHA-256 of the password — never stored in plain text.
-// ═══════════════════════════════════════════════════════════
-const PW_HASH = '782062488e5b79d25a67d4461b390f4279bfb49cd102aff4897214bfee3b9cac';
-const SESSION_KEY = 'fits-unlocked';
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256',
-    new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function tryUnlock() {
-  const val = document.getElementById('pw-input').value;
-  const hash = await sha256(val);
-  if (hash === PW_HASH) {
-    sessionStorage.setItem(SESSION_KEY, '1');
-    document.getElementById('lock-screen').style.display = 'none';
-  } else {
-    const input = document.getElementById('pw-input');
-    const err   = document.getElementById('pw-error');
-    err.textContent = 'Wrong password';
-    input.classList.add('shake');
-    input.value = '';
-    setTimeout(() => { input.classList.remove('shake'); err.textContent = ''; }, 1200);
-  }
-}
-
-document.getElementById('btn-unlock').addEventListener('click', tryUnlock);
-document.getElementById('pw-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') tryUnlock();
-});
-
-// Already unlocked this session — skip the gate immediately
-if (sessionStorage.getItem(SESSION_KEY)) {
-  document.getElementById('lock-screen').style.display = 'none';
-}
-
 // ═══════════════════════════════════════════════════════════
 // WARDROBE DATA
 // ═══════════════════════════════════════════════════════════
